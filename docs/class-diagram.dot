@@ -1,0 +1,65 @@
+digraph G {
+  rankdir=BT; nodesep=0.5; ranksep=0.7; fontname="Helvetica";
+  node [shape=plain fontname="Helvetica" fontsize=11];
+  edge [fontname="Helvetica" fontsize=10];
+
+  Borrowable [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#EEF3FB">
+    <tr><td><i>&lt;&lt;interface&gt;&gt;</i><br/><b>Borrowable</b></td></tr><hr/>
+    <tr><td align="left">+ borrow(Member): Loan<br align="left"/>+ giveBack(): void<br align="left"/></td></tr></table>>];
+
+  LibraryItem [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FFF7E0">
+    <tr><td><i>&lt;&lt;abstract&gt;&gt;</i><br/><b>LibraryItem</b></td></tr><hr/>
+    <tr><td align="left">- id: String<br align="left"/>- title: String<br align="left"/>- available: boolean<br align="left"/>- currentLoan: Loan<br align="left"/></td></tr><hr/>
+    <tr><td align="left">+ <i>loanPeriodDays(): int</i><br align="left"/>+ <i>getType(): String</i><br align="left"/>+ <i>getExtra(): String</i><br align="left"/>+ borrow(Member): Loan<br align="left"/>+ giveBack(): void<br align="left"/></td></tr></table>>];
+
+  Book [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#E8F5E9">
+    <tr><td><b>Book</b></td></tr><hr/>
+    <tr><td align="left">- author: String<br align="left"/></td></tr><hr/>
+    <tr><td align="left">+ loanPeriodDays(): int  &#171;14&#187;<br align="left"/></td></tr></table>>];
+
+  Dvd [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#E8F5E9">
+    <tr><td><b>Dvd</b></td></tr><hr/>
+    <tr><td align="left">- durationMinutes: int<br align="left"/></td></tr><hr/>
+    <tr><td align="left">+ loanPeriodDays(): int  &#171;7&#187;<br align="left"/></td></tr></table>>];
+
+  Member [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FFF7E0">
+    <tr><td><b>Member</b></td></tr><hr/>
+    <tr><td align="left">+ MAX_LOANS: int = 3<br align="left"/>- id: String<br align="left"/>- name: String<br align="left"/>- loans: List&lt;Loan&gt;<br align="left"/></td></tr><hr/>
+    <tr><td align="left">+ getLoanCount(): int<br align="left"/>+ getLoans(): List&lt;Loan&gt;<br align="left"/></td></tr></table>>];
+
+  Loan [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FFF7E0">
+    <tr><td><b>Loan</b></td></tr><hr/>
+    <tr><td align="left">- member: Member<br align="left"/>- item: LibraryItem<br align="left"/>- borrowDate: LocalDate<br align="left"/></td></tr><hr/>
+    <tr><td align="left">+ getDueDate(): LocalDate<br align="left"/>+ isOverdue(LocalDate): boolean<br align="left"/>+ daysOverdue(LocalDate): long<br align="left"/></td></tr></table>>];
+
+  Library [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FDECEA">
+    <tr><td><b>Library</b></td></tr><hr/>
+    <tr><td align="left">- items: Map&lt;String, LibraryItem&gt;<br align="left"/>- members: Map&lt;String, Member&gt;<br align="left"/></td></tr><hr/>
+    <tr><td align="left">+ addItem(LibraryItem)<br align="left"/>+ registerMember(Member)<br align="left"/>+ borrow(memberId, itemId): Loan<br align="left"/>+ returnItem(itemId)<br align="left"/>+ searchByTitle(String): List&lt;LibraryItem&gt;<br align="left"/>+ listOverdue(LocalDate): List&lt;Loan&gt;<br align="left"/>+ save(Path) / load(Path)<br align="left"/></td></tr></table>>];
+
+  ItemFactory [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#F3E5F5">
+    <tr><td><i>&lt;&lt;factory&gt;&gt;</i><br/><b>ItemFactory</b></td></tr><hr/>
+    <tr><td align="left">+ create(type, id, title, extra): LibraryItem<br align="left"/></td></tr></table>>];
+
+  LibraryApp [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FDECEA">
+    <tr><td><b>LibraryApp</b></td></tr><hr/>
+    <tr><td align="left">+ main(String[])<br align="left"/>- menu actions (add, register, borrow,<br align="left"/>  return, overdue, search)<br align="left"/></td></tr></table>>];
+
+  EX1 [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FBE9E7"><tr><td><b>ItemNotAvailableException</b><br/>extends Exception</td></tr></table>>];
+  EX2 [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FBE9E7"><tr><td><b>MemberLimitExceededException</b><br/>extends Exception</td></tr></table>>];
+
+  LibraryItem -> Borrowable [arrowhead=empty style=dashed label=" implements"];
+  Book -> LibraryItem [arrowhead=empty label=" extends"];
+  Dvd -> LibraryItem [arrowhead=empty];
+  Library -> LibraryItem [arrowhead=diamond label=" 0..*  (Map by id)" headlabel=""];
+  Library -> Member [arrowhead=diamond label=" 0..*  (Map by id)"];
+  Loan -> Member [arrowhead=vee label=" borrower"];
+  Loan -> LibraryItem [arrowhead=vee label=" item"];
+  Member -> Loan [arrowhead=diamond label=" 0..3 active"];
+  LibraryApp -> Library [arrowhead=vee style=dashed label=" uses"];
+  Library -> ItemFactory [arrowhead=vee style=dashed label=" uses"];
+  ItemFactory -> Book [arrowhead=vee style=dashed label=" creates"];
+  ItemFactory -> Dvd [arrowhead=vee style=dashed];
+  LibraryItem -> EX1 [arrowhead=vee style=dashed label=" throws"];
+  LibraryItem -> EX2 [arrowhead=vee style=dashed label=" throws"];
+}
